@@ -1,11 +1,6 @@
 #!/bin/bash
 
-wait_service() {
-    while ! nc -z $1 $2; do
-        echo "Waiting for $1 server to listen on port $2 ..."
-        sleep 1
-    done
-}
+. common.sh
 
 CONFIGTEMPLATE=/etc/nginx/conf.d/nginx.conf.template
 CONFIGFILE=/etc/nginx/conf.d/default.conf
@@ -18,10 +13,8 @@ sys.stdout.write(
 
 
 if [ "$1" == "run" ]; then
-    wait_service web ${FLASK_PORT}
     exec nginx -g 'daemon off;'
 elif [ "$1" == "debug" ]; then
     cat /etc/nginx/conf.d/default.conf
-    wait_service web ${FLASK_PORT}
     exec nginx-debug -g 'daemon off;'
 fi

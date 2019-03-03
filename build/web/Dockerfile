@@ -4,6 +4,7 @@ RUN apt-get -y update &&\
     apt-get -y --no-install-recommends install \
     vim \
     sudo \
+    netcat-traditional \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 
@@ -28,6 +29,7 @@ WORKDIR $HOME
 RUN pip install -r requirements.dev.txt
 
 ADD build/web/entrypoint.sh \
+    build/common.sh \
     $HOME/bin/
 
 RUN chown -R web:web $HOME

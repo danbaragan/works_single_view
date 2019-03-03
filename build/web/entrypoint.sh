@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 
+. common.sh
+
 init() {
     flask init-db
 }
 
 if [ "$1" == "run" ]; then
-    [ -f instance/${DATABASE_URL} ] || init
+    wait_service postgres 5432
     exec gunicorn \
         -w 2 \
         --forwarded-allow-ips="*" \
@@ -13,7 +15,7 @@ if [ "$1" == "run" ]; then
         "${FLASK_APP}:create_app()"
 
 elif [ "$1" == "debug" ]; then
-    [ -f instance/${DATABASE_URL} ] || init
+    [ -f instance/${DATABASE} ] || init
     exec flask run -h 0.0.0.0
 
 elif [ "$1" == "init" ]; then

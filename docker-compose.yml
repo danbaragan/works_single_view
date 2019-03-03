@@ -10,9 +10,18 @@ services:
       - deploy/env
       - deploy/web/env
     volumes:
-      - db:/home/web/instance
+      - web_vol:/home/web/instance
     depends_on:
-      - web_server
+      - postgres
+
+  postgres:
+    container_name: bmat_postgres
+    image: postgres
+    env_file:
+      - deploy/env
+      - deploy/postgres/env
+    volumes:
+      - db_vol:/var/lib/postgresql/data
 
   web_server:
     container_name: bmat_web_server
@@ -24,7 +33,11 @@ services:
       - deploy/web_server/env
     ports:
       - "80:80"
+    depends_on:
+      - web
 
 volumes:
-  db:
+  db_vol:
+    driver: local
+  web_vol:
     driver: local

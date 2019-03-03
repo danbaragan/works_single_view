@@ -1,0 +1,7 @@
+# make sure to check ../env for common env across containers
+FLASK_ENV=development
+
+FLASK_APP=wsv
+SECRET_KEY=someSecret
+FLASK_HOST=0.0.0.0
+DATABASE_HOST=
