@@ -1,0 +1,5 @@
+FLASK_APP=wsv
+SECRET_KEY=someSecret
+FLASK_ENV=development
+DATABASE_URL=wsv.db
+FLASK_HOST=0.0.0.0

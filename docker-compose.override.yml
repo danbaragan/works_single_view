@@ -1,0 +1,17 @@
+version: "2"
+
+services:
+  web:
+    ports:
+      - "5000:5000"
+    tty: true
+    stdin_open: true
+    command: debug
+    volumes:
+      - ./web/wsv:/home/web/wsv
+      - ./web/tests:/home/web/tests
+
+  web_server:
+    command: debug
+    volumes:
+      - ./build/web_server/nginx.conf.template:/etc/nginx/conf.d/nginx.conf.template

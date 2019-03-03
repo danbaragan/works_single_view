@@ -1,0 +1,30 @@
+version: "2"
+
+services:
+  web:
+    container_name: bmat_web
+    build:
+      dockerfile: build/web/Dockerfile
+      context: .
+    env_file:
+      - deploy/env
+      - deploy/web/env
+    volumes:
+      - db:/home/web/instance
+    depends_on:
+      - web_server
+
+  web_server:
+    container_name: bmat_web_server
+    build:
+      dockerfile: build/web_server/Dockerfile
+      context: .
+    env_file:
+      - deploy/env
+      - deploy/web_server/env
+    ports:
+      - "80:80"
+
+volumes:
+  db:
+    driver: local
