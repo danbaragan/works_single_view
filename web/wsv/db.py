@@ -1,6 +1,7 @@
 from datetime import datetime
 from fuzzywuzzy import fuzz
 import click
+
 from flask.cli import with_appcontext
 from peewee import (
     CharField,

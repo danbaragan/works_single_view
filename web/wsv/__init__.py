@@ -4,6 +4,7 @@ from pathlib import Path
 from flask import Flask
 
 from . import db
+from . import importer
 
 
 def create_app(test_config=None):
@@ -30,6 +31,7 @@ def create_app(test_config=None):
     db.db_wrapper.init_app(app)
     db.db_wrapper.database.close()
     db.init_app(app)
+    importer.init_app(app)
 
     @app.route('/hello')
     def hello():

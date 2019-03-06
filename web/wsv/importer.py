@@ -1,7 +1,10 @@
 import csv
 from dataclasses import dataclass, InitVar
 from datetime import datetime
+import click
+from pathlib import Path
 
+from flask.cli import with_appcontext
 from peewee import *
 
 from .db import (
@@ -128,3 +131,26 @@ def import_csv(path):
         for row in reader:
             CsvItem(**row).merge()
 
+
+@click.command('import-csv')
+@click.option('-f', '--file', required=True, type=Path)
+@with_appcontext
+def import_csv_command(file):
+    if file.exists():
+        wn = Work.select().count()
+        cn = Contributor.select().count()
+        pn = Provider.select().count()
+
+        import_csv(file)
+
+        print(f'{Work.select().count() - wn} new works')
+        print(f'{Contributor.select().count() - cn} new contributors')
+        print(f'{Provider.select().count() - pn} new providers')
+        # TODO better reporting
+        print('Updates are not reported')
+    else:
+        print(f'file {file} not found')
+
+
+def init_app(app):
+    app.cli.add_command(import_csv_command)
