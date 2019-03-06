@@ -15,3 +15,5 @@ services:
     command: debug
     volumes:
       - ./build/web_server/nginx.conf.template:/etc/nginx/conf.d/nginx.conf.template
+
+  # make postgres log all on dev (I need an entrypoint of my won...)
