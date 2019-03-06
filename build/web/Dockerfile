@@ -2,6 +2,8 @@ FROM python:3.7-slim
 
 RUN apt-get -y update &&\
     apt-get -y --no-install-recommends install \
+    gcc \
+    build-essential \
     vim \
     sudo \
     netcat-traditional \

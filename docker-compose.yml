@@ -17,6 +17,7 @@ services:
   postgres:
     container_name: bmat_postgres
     image: postgres
+    # TODO use env vars to initialize empty volume; it will allow public connect&co though
     env_file:
       - deploy/env
       - deploy/postgres/env
