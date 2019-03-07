@@ -141,13 +141,13 @@ def db_providers(db_works):
             created=now,
             work=w1,
             provider=p1,
-            provider_specific_id='1',
+            provider_work_id='1',
         ).save()
         WorkProvider(
             created=now - timedelta(milliseconds=100),
             work=w2,
             provider=p1,
-            provider_specific_id='2',
+            provider_work_id='2',
         ).save()
 
         p2 = Provider(
@@ -159,7 +159,7 @@ def db_providers(db_works):
             created=now,
             work=w2,
             provider=p2,
-            provider_specific_id='x',
+            provider_work_id='x',
         ).save()
 
         db_wrapper.database.close()

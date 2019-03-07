@@ -88,7 +88,7 @@ class CsvItem:
                             created=now,
                             work=work,
                             provider=p,
-                            provider_specific_id=self.id,
+                            provider_work_id=self.id,
                         ).save()
             else:
                 w = Work(
@@ -106,7 +106,7 @@ class CsvItem:
                         created=now,
                         work=w,
                         provider=p,
-                        provider_specific_id=self.id,
+                        provider_work_id=self.id,
                     )
                     wp.save()
 

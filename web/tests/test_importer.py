@@ -83,7 +83,7 @@ def test_importer_single_complete_row_new(db_basic, csv_file_simple_new):
         assert w.workprovider_set.count() == 1
         wp = w.workprovider_set[0]
         assert wp.provider.name == e_prov
-        assert wp.provider_specific_id == e_prov_id
+        assert wp.provider_work_id == e_prov_id
 
         assert w.workcontributor_set.count() == 3
         contributors = { x.contributor.name for x in w.workcontributor_set }
@@ -231,7 +231,7 @@ def test_importer_all(db_basic, csv_file_all):
         assert w.title == 'Je ne sais pas'
         assert w.workcontributor_set.count() == 2
         assert w.workprovider_set.count() == 1
-        assert w.workprovider_set[0].provider_specific_id == '3'
+        assert w.workprovider_set[0].provider_work_id == '3'
 
 
 

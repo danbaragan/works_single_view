@@ -88,12 +88,15 @@ class WorkContributor(BaseModel):
 class Provider(BaseModel):
     name = CharField(unique=True)
 
+    def __str__(self):
+        return f'{self.name}'
+
 
 class WorkProvider(BaseModel):
     work = ForeignKeyField(Work, on_delete='CASCADE')
     # unique together these? Meh, we can't trust the providers imports consistency...
     provider = ForeignKeyField(Provider, on_delete='CASCADE')
-    provider_specific_id = CharField(null=True)
+    provider_work_id = CharField(null=True)
 
 
 MODELS = [Work, Contributor, WorkContributor, Provider, WorkProvider, ]

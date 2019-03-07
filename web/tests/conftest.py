@@ -120,7 +120,7 @@ def db_basic(app):
             created=now,
             work=w1,
             provider=p1,
-            provider_specific_id='x'
+            provider_work_id='x'
         ).save()
 
         # An already existing provider. Not related to any work yet
