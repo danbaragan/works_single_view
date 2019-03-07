@@ -31,6 +31,7 @@ def create_app(test_config=None):
         app.config.from_mapping(test_config)
     api = Api(app)
     api.add_resource(view.WorksList, "/works")
+    api.add_resource(view.WorksDetail, "/works/<string:iswc>")
 
     db.db_wrapper.init_app(app)
     db.db_wrapper.database.close()

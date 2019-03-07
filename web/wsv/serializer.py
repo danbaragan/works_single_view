@@ -35,3 +35,4 @@ class ContributorSchema(ma.Schema):
 
 
 works_schema = WorkSchema(many=True)
+work_schema = WorkSchema()

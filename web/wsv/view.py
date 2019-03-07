@@ -11,3 +11,15 @@ class WorksList(Resource):
         return {
             'works': works
         }
+
+
+class WorksDetail(Resource):
+    def get(self, iswc):
+        try:
+            w = Work.get(Work.iswc == iswc)
+        except Work.DoesNotExist:
+            return {}, 404
+        work = work_schema.dump(w).data
+        return {
+            'work': work
+        }
