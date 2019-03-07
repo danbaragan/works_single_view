@@ -16,4 +16,6 @@ services:
     volumes:
       - ./build/web_server/nginx.conf.template:/etc/nginx/conf.d/nginx.conf.template
 
-  # make postgres log all on dev (I need an entrypoint of my won...)
+  # make postgres log all (will permanently alter postgresl.conf in the data directory)
+  # docker-compose exec postgres sed -i -e"s/^#log_statement =\(.\+\)/log_statement = 'all'/" /var/lib/postgresql/data/postgresql.conf
+  # docker-compose exec postgres su postgres -c "/usr/lib/postgresql/11/bin/pg_ctl reload"
