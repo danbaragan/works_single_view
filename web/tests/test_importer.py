@@ -204,3 +204,15 @@ def test_csv_import_schema(merge, csv_file_simple_new):
     assert arg['title'] == 'Adventure of a Lifetime'
     assert arg['source'] == 'warner'
     assert arg['id'] == '2'
+
+
+def test_export(db_basic, tmp_path):
+    path = tmp_path / 'test.csv'
+    app, works, _, _ = db_basic
+    expected = """title,contributors,iswc,source,id
+cde,Contributor 1|Contributor 2,xyz,Provider 1,x
+"""
+    with app.app_context():
+        csv_data.export_csv(path)
+
+        assert path.read_text() == expected

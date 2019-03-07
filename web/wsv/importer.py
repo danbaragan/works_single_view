@@ -1,5 +1,4 @@
 import csv
-from dataclasses import dataclass, InitVar
 from datetime import datetime
 import click
 from pathlib import Path
@@ -28,13 +27,33 @@ class CsvData:
                 row_data, errors = self.schema.load(row)
                 self.merge(row_data)
 
-    def export_csv(self):
-        pass
+    def export_csv(self, path):
+        with open(path, "w") as csvfile:
+            writer = csv.DictWriter(csvfile, self.fields)
+            writer.writeheader()
+
+            # TODO Do we really export works from all providers?
+            for work in Work.select():
+                data = self.export(work)
+                # we don't use schema on our way back - kind of ugly...
+                writer.writerow(data)
 
 
 class ParticularCsvData(CsvData):
     fields = ['title', 'contributors', 'iswc', 'source', 'id']
     schema = particular_schema
+
+    def export(self, work):
+        contributors = [x for x in work.contributors]
+        providers = [x for x in work.providers]
+        for provider in providers:
+            return {
+                'title': work.title,
+                'contributors': '|'.join( x.name for x in contributors ),
+                'iswc': work.iswc,
+                'source': provider.name,
+                'id': provider.workprovider.provider_work_id,
+            }
 
     def merge(self, data):
         if not data['iswc']:
