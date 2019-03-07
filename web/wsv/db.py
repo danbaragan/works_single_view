@@ -3,11 +3,7 @@ from fuzzywuzzy import fuzz
 import click
 
 from flask.cli import with_appcontext
-from peewee import (
-    CharField,
-    DateTimeField,
-    ForeignKeyField,
-)
+from peewee import *
 from playhouse.flask_utils import FlaskDB
 
 db_wrapper = FlaskDB()
@@ -74,9 +70,23 @@ class Work(BaseModel):
 
     # we could have a per model comparison that will take into account all fields and drill down into relations
 
+    @property
+    def providers(self):
+        return Provider.select(Provider, WorkProvider).join(WorkProvider).where(WorkProvider.work == self.id)
+
+    @property
+    def contributors(self):
+        return Contributor.select().join(WorkContributor).where(WorkContributor.work == self.id)
+
+    def __str__(self):
+        return f'{self.iswc} - {self.title}'
+
 
 class Contributor(BaseModel):
     name = CharField(unique=True)
+
+    def __str__(self):
+        return f'{self.name}'
 
 
 class WorkContributor(BaseModel):

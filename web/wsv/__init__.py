@@ -2,9 +2,11 @@ import os
 from pathlib import Path
 
 from flask import Flask
+from flask_restful import Api
 
 from . import db
 from . import importer
+from . import view
 
 
 def create_app(test_config=None):
@@ -27,6 +29,8 @@ def create_app(test_config=None):
 
     if test_config:
         app.config.from_mapping(test_config)
+    api = Api(app)
+    api.add_resource(view.WorksList, "/works")
 
     db.db_wrapper.init_app(app)
     db.db_wrapper.database.close()
