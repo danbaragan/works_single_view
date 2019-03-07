@@ -1,6 +1,7 @@
 import pytest
+from unittest import mock
 
-from wsv.importer import import_csv, CsvItem
+from wsv.importer import csv_data
 from wsv.db import (
     db_wrapper,
     Contributor,
@@ -9,48 +10,6 @@ from wsv.db import (
     Provider,
     WorkProvider,
 )
-
-
-def test_csvitem_all_missing_ok(app):
-    row = dict()
-    c = CsvItem(**row)
-    assert c.title == ''
-    assert c.contributor_list == []
-    assert c.iswc == ''
-    assert c.source == ''
-    assert c.id == ''
-
-
-def test_csvitem_all_ok(app):
-    row = dict(
-        title='Shape of You',
-        contributors='Edward Sheeran',
-        iswc='T9204649558',
-        source='warner',
-        id='1',
-    )
-    c = CsvItem(**row)
-    assert c.title == 'Shape of You'
-    assert c.contributor_list == ['Edward Sheeran']
-    assert c.iswc == 'T9204649558'
-    assert c.source == 'warner'
-    assert c.id == '1'
-
-
-def test_csvitem_contrib_aggregate_ok(app):
-    row = dict(
-        title='Shape of You',
-        contributors='Edward Sheeran|bla bla',
-        iswc='T9204649558',
-        source='warner',
-        id='1',
-    )
-    c = CsvItem(**row)
-    assert c.title == 'Shape of You'
-    assert c.contributor_list == ['Edward Sheeran', 'bla bla']
-    assert c.iswc == 'T9204649558'
-    assert c.source == 'warner'
-    assert c.id == '1'
 
 
 @pytest.fixture(scope='session')
@@ -73,7 +32,7 @@ def test_importer_single_complete_row_new(db_basic, csv_file_simple_new):
     e_prov_id = '2'
 
     with app.app_context():
-        import_csv(csv_file_simple_new)
+        csv_data.import_csv(csv_file_simple_new)
         w = Work.select().where(Work.iswc == e_iswc)
         assert w.count() == 1
         w = w[0]
@@ -105,7 +64,7 @@ def test_importer_single_complete_row_mismatch_existing(db_basic, csv_file_simpl
     app, _, _, _ = db_basic
 
     with app.app_context():
-        import_csv(csv_file_simple_existing)
+        csv_data.import_csv(csv_file_simple_existing)
     # does not crash
 
 
@@ -126,7 +85,7 @@ def test_importer_single_complete_row_existing(db_basic, csv_file_simple_existin
     assert w1.workcontributor_set.count() == 2
 
     with app.app_context():
-        import_csv(csv_file_simple_existing)
+        csv_data.import_csv(csv_file_simple_existing)
         w = Work.select().where(Work.iswc == e_iswc)
         assert w.count() == 1
         w = w[0]
@@ -162,7 +121,7 @@ def test_importer_contrib_overlap_new(db_basic, csv_file_contrib_overlap_new):
     e_prov = 'warner'
 
     with app.app_context():
-        import_csv(csv_file_contrib_overlap_new)
+        csv_data.import_csv(csv_file_contrib_overlap_new)
         w = Work.select().where(Work.iswc == e_iswc)
         assert w.count() == 1
         w = w[0]
@@ -198,7 +157,7 @@ def test_importer_all(db_basic, csv_file_all):
     app, works, _, _ = db_basic
 
     with app.app_context():
-        import_csv(csv_file_all)
+        csv_data.import_csv(csv_file_all)
         ws = Work.select()
         assert ws.count() == 5  # 4+1 the conftest work
 
@@ -234,5 +193,14 @@ def test_importer_all(db_basic, csv_file_all):
         assert w.workprovider_set[0].provider_work_id == '3'
 
 
+@mock.patch('wsv.importer.csv_data.merge')
+def test_csv_import_schema(merge, csv_file_simple_new):
+    csv_data.import_csv(csv_file_simple_new)
 
-
+    assert merge.call_count == 1
+    arg = merge.call_args[0][0]
+    assert list(arg['contributors']) == ['O Brien Edward John', 'Yorke Thomas Edward', 'Greenwood Colin Charles']
+    assert arg['iswc'] == 'T0101974597'
+    assert arg['title'] == 'Adventure of a Lifetime'
+    assert arg['source'] == 'warner'
+    assert arg['id'] == '2'

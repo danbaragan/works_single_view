@@ -15,37 +15,42 @@ from .db import (
     Provider,
     WorkProvider,
 )
+from .serializer import particular_schema
 
 
-@dataclass
-class CsvItem:
-    # TODO sanitize this! Can we use marshmallow?
-    # TODO decouple merge - different providers will have differnt formats. Merge logic should be the same
-    title: str = ''
-    contributors: InitVar[str] = ''
-    contributor_list: list = None
-    iswc: str = ''
-    source: str = ''
-    id: str = ''
+class CsvData:
+    def import_csv(self, path):
+        with open(path) as csvfile:
+            # TODO detect files without the columns stated on the first row; they need to use cls.fields
+            # TODO one time check if row.keys() match cls.fields
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                row_data, errors = self.schema.load(row)
+                self.merge(row_data)
 
-    def __post_init__(self, contributors):
-        self.contributor_list = [ c for c in contributors.split('|') if c ]
+    def export_csv(self):
+        pass
 
-    def merge(self):
-        if not self.iswc:
+
+class ParticularCsvData(CsvData):
+    fields = ['title', 'contributors', 'iswc', 'source', 'id']
+    schema = particular_schema
+
+    def merge(self, data):
+        if not data['iswc']:
             # TODO attempt some fuzzy matching by work title
             return
         else:
             prefetch_queries = []
-            works = Work.select().where(Work.iswc == self.iswc)
+            works = Work.select().where(Work.iswc == data['iswc'])
             prefetch_queries.append(works)
 
-        if self.source:
+        if data['source']:
             work_providers = WorkProvider.select()
-            providers = Provider.select().where(Provider.name == self.source)
+            providers = Provider.select().where(Provider.name == data['source'])
             prefetch_queries.append(work_providers)
             prefetch_queries.append(providers)
-        if self.contributor_list:
+        if data['contributors']:
             work_contributors = WorkContributor.select()
             contributors = Contributor.select()
             prefetch_queries.append(work_contributors)
@@ -60,13 +65,13 @@ class CsvItem:
             now = datetime.utcnow()
             if work:
                 work = work[0]
-                if work.better_field('title', self.title):
-                    work.title = self.title
+                if work.better_field('title', data['title']):
+                    work.title = data['title']
                     work.save()
-                if self.contributor_list and len(work.workcontributor_set):
+                if data['contributors'] and len(work.workcontributor_set):
                     # TODO use fuzz here too so we may upgrade our info on existing authors
                     current_contributors = { wc.contributor.name for wc in work.workcontributor_set }
-                    for contrib in self.contributor_list:
+                    for contrib in data['contributors']:
                         if contrib not in current_contributors:
                             c, _ = Contributor.get_or_create(
                                 name=contrib,
@@ -77,40 +82,40 @@ class CsvItem:
                                 work=work,
                                 contributor=c,
                             ).save()
-                if self.source and len(work.workprovider_set):
+                if data['source'] and len(work.workprovider_set):
                     current_providers = { wp.provider.name for wp in work.workprovider_set }
-                    if self.source not in current_providers:
+                    if data['source'] not in current_providers:
                         p, _ = Provider.get_or_create(
-                            name=self.source,
+                            name=data['source'],
                             defaults={'created': now},
                         )
                         WorkProvider(
                             created=now,
                             work=work,
                             provider=p,
-                            provider_work_id=self.id,
+                            provider_work_id=data['id'],
                         ).save()
             else:
                 w = Work(
                     created=now,
-                    iswc=self.iswc,
-                    title=self.title,
+                    iswc=data['iswc'],
+                    title=data['title'],
                 )
                 w.save()
-                if self.source:
+                if data['source']:
                     p, _ = Provider.get_or_create(
-                        name=self.source,
+                        name=data['source'],
                         defaults={'created': now},
                     )
                     wp = WorkProvider(
                         created=now,
                         work=w,
                         provider=p,
-                        provider_work_id=self.id,
+                        provider_work_id=data['id'],
                     )
                     wp.save()
 
-                for contrib in self.contributor_list:
+                for contrib in data['contributors']:
                     c, _ = Contributor.get_or_create(
                         name=contrib,
                         defaults={'created': now},
@@ -123,13 +128,7 @@ class CsvItem:
                     wc.save()
 
 
-# a single function should suffice for now
-def import_csv(path):
-    with open(path) as csvfile:
-        # TODO files without the columns stated on the first row will not behave
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            CsvItem(**row).merge()
+csv_data = ParticularCsvData()
 
 
 @click.command('import-csv')
@@ -141,7 +140,7 @@ def import_csv_command(file):
         cn = Contributor.select().count()
         pn = Provider.select().count()
 
-        import_csv(file)
+        csv_data.import_csv(file)
 
         print(f'{Work.select().count() - wn} new works')
         print(f'{Contributor.select().count() - cn} new contributors')

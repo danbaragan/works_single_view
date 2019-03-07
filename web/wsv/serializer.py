@@ -34,5 +34,23 @@ class ContributorSchema(ma.Schema):
     name = fields.Str(dump_only=True)
 
 
+class ContributorsArray(fields.Field):
+    def _serialize(self, value, attr, obj):
+        return '|'.join(value)
+
+    def _deserialize(self, value, attr, data):
+        return map(str.strip, value.split('|'))
+
+
+class ParticularSchema(ma.Schema):
+    title = fields.Str()
+    contributors = ContributorsArray()
+    iswc = fields.Str()
+    source = fields.Str()
+    id = fields.Str()
+
+
 works_schema = WorkSchema(many=True)
 work_schema = WorkSchema()
+
+particular_schema = ParticularSchema()
