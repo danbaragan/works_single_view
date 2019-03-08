@@ -45,7 +45,7 @@ Also, play around with docker, flask, peewee, postgres, nginx
 ### API
 
 - GET /works
-- GET /works/<iswc>
+- GET /works/\<iswc\>
 - GET /export
 - GET /import
 
