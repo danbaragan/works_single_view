@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytest
 from unittest import mock
 
@@ -30,9 +32,14 @@ def test_importer_single_complete_row_new(db_basic, csv_file_simple_new):
     e_contrib = {'O Brien Edward John', 'Yorke Thomas Edward', 'Greenwood Colin Charles'}
     e_prov = 'warner'
     e_prov_id = '2'
+    count = 1
 
     with app.app_context():
-        csv_data.import_csv(csv_file_simple_new)
+        c = 0
+        with open(csv_file_simple_new) as f:
+            c = csv_data.import_csv(f)
+
+        assert count == c
         w = Work.select().where(Work.iswc == e_iswc)
         assert w.count() == 1
         w = w[0]
@@ -62,9 +69,13 @@ abc cde,Obispo Pascal Michel|Florence Lionel Jacques,xyz,sony,3
 
 def test_importer_single_complete_row_mismatch_existing(db_basic, csv_file_simple_existing):
     app, _, _, _ = db_basic
+    count = 1
 
     with app.app_context():
-        csv_data.import_csv(csv_file_simple_existing)
+        c = 0
+        with open(csv_file_simple_existing) as f:
+            c = csv_data.import_csv(f)
+        assert count == c
     # does not crash
 
 
@@ -76,7 +87,7 @@ def test_importer_single_complete_row_existing(db_basic, csv_file_simple_existin
     e_iswc = 'xyz'
     e_contribs = {'Obispo Pascal Michel', 'Florence Lionel Jacques'}
     e_prov = 'sony'
-    e_prov_id = '3'
+    count = 1
 
     # the default situation in db_basic
     assert w1.iswc == e_iswc
@@ -85,7 +96,11 @@ def test_importer_single_complete_row_existing(db_basic, csv_file_simple_existin
     assert w1.workcontributor_set.count() == 2
 
     with app.app_context():
-        csv_data.import_csv(csv_file_simple_existing)
+        c = 0
+        with open(csv_file_simple_existing) as f:
+            c = csv_data.import_csv(f)
+
+        assert count == c
         w = Work.select().where(Work.iswc == e_iswc)
         assert w.count() == 1
         w = w[0]
@@ -119,9 +134,13 @@ def test_importer_contrib_overlap_new(db_basic, csv_file_contrib_overlap_new):
     e_iswc = 'T0101974597'
     e_contribs = {'O Brien Edward John', 'Yorke Thomas Edward', 'Greenwood Colin Charles', 'Selway Philip James'}
     e_prov = 'warner'
+    count = 2
 
     with app.app_context():
-        csv_data.import_csv(csv_file_contrib_overlap_new)
+        c = 0
+        with open(csv_file_contrib_overlap_new) as f:
+            c = csv_data.import_csv(f)
+        assert count == c
         w = Work.select().where(Work.iswc == e_iswc)
         assert w.count() == 1
         w = w[0]
@@ -155,9 +174,14 @@ Je ne sais pas,Obispo Pascal Michel|Florence Lionel Jacques,T0046951705,sony,3
 
 def test_importer_all(db_basic, csv_file_all):
     app, works, _, _ = db_basic
+    count = 8
 
     with app.app_context():
-        csv_data.import_csv(csv_file_all)
+        c = 0
+        with open(csv_file_all) as f:
+            c = csv_data.import_csv(f)
+
+        assert c == count
         ws = Work.select()
         assert ws.count() == 5  # 4+1 the conftest work
 
@@ -195,8 +219,12 @@ def test_importer_all(db_basic, csv_file_all):
 
 @mock.patch('wsv.importer.csv_data.merge')
 def test_csv_import_schema(merge, csv_file_simple_new):
-    csv_data.import_csv(csv_file_simple_new)
+    count = 1
+    c = 0
+    with open(csv_file_simple_new) as f:
+        c = csv_data.import_csv(f)
 
+    assert count == c
     assert merge.call_count == 1
     arg = merge.call_args[0][0]
     assert list(arg['contributors']) == ['O Brien Edward John', 'Yorke Thomas Edward', 'Greenwood Colin Charles']
@@ -209,10 +237,20 @@ def test_csv_import_schema(merge, csv_file_simple_new):
 def test_export(db_basic, tmp_path):
     path = tmp_path / 'test.csv'
     app, works, _, _ = db_basic
+    # FIXME unorderd results
     expected = """title,contributors,iswc,source,id
+cde,Contributor 1|Contributor 2,xyz,sony,y
 cde,Contributor 1|Contributor 2,xyz,Provider 1,x
 """
     with app.app_context():
-        csv_data.export_csv(path)
+        p2 = Provider.get(Provider.name == 'sony')
+        WorkProvider.create(
+            created=datetime.utcnow(),
+            work=works[0],
+            provider=p2,
+            provider_work_id='y',
+        )
+        with open(path, "w") as f:
+            csv_data.export_csv(f)
 
         assert path.read_text() == expected

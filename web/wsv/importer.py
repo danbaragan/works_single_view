@@ -18,27 +18,27 @@ from .serializer import particular_schema
 
 
 class CsvData:
-    def import_csv(self, path):
+    def import_csv(self, csvfile):
         count = 0
-        with open(path) as csvfile:
-            # TODO detect files without the columns stated on the first row; they need to use cls.fields
-            # TODO one time check if row.keys() match cls.fields
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                row_data, errors = self.schema.load(row)
-                self.merge(row_data)
-                count += 1
+        # TODO detect files without the columns stated on the first row; they need to use cls.fields
+        # TODO one time check if row.keys() match cls.fields
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            row_data, errors = self.schema.load(row)
+            self.merge(row_data)
+            count += 1
         return count
 
-    def export_csv(self, path):
+    # TODO batch this if too big
+    def export_csv(self, csvfile):
         count = 0
-        with open(path, "w") as csvfile:
-            writer = csv.DictWriter(csvfile, self.fields)
-            writer.writeheader()
+        writer = csv.DictWriter(csvfile, self.fields)
+        writer.writeheader()
 
-            # TODO Do we really export works from all providers?
-            for work in Work.select():
-                data = self.export(work)
+        # TODO Do we really export works from all providers?
+        # no order?
+        for work in Work.select():
+            for data in self.export(work):
                 # we don't use schema on our way back - kind of ugly...
                 writer.writerow(data)
                 count += 1
@@ -53,7 +53,7 @@ class ParticularCsvData(CsvData):
         contributors = [x for x in work.contributors]
         providers = [x for x in work.providers]
         for provider in providers:
-            return {
+            yield {
                 'title': work.title,
                 'contributors': '|'.join( x.name for x in contributors ),
                 'iswc': work.iswc,
@@ -165,7 +165,9 @@ def import_csv_command(file):
         cn = Contributor.select().count()
         pn = Provider.select().count()
 
-        c = csv_data.import_csv(file)
+        c = 0
+        with open(file) as csvfile:
+            c = csv_data.import_csv(csvfile)
 
         print(f'{c} csv lines processed')
         print(f'{Work.select().count() - wn} new works')
@@ -181,7 +183,9 @@ def import_csv_command(file):
 @click.option('-f', '--file', required=True, type=Path)
 @with_appcontext
 def export_csv_command(file):
-    c = csv_data.export_csv(file)
+    c = 0
+    with open(file, "w") as csvfile:
+        c = csv_data.export_csv(csvfile)
 
     print(f'{c} csv lines exported')
     print(f'{Work.select().count()} exported works')

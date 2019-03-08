@@ -1,7 +1,8 @@
 import os
 from pathlib import Path
+from tempfile import TemporaryFile
 
-from flask import Flask
+from flask import Flask, Response, send_file
 from flask_restful import Api
 
 from . import db
@@ -41,5 +42,22 @@ def create_app(test_config=None):
     @app.route('/hello')
     def hello():
         return "Hello world!"
+
+    @app.route('/import')
+    def import_csv():
+        return "import"
+
+    @app.route('/export')
+    def export_csv():
+        # this will be deleted at close / garbage collection
+        file = TemporaryFile(mode="w+")
+        importer.csv_data.export_csv(file)
+        file.seek(0)
+        # return send_file(file, mimetype="text/csv")
+        return Response(
+            file,
+            mimetype="text/csv",
+            headers={"Content-disposition": "attachment; filename=works.csv"},
+        )
 
     return app
