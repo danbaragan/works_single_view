@@ -1,9 +1,11 @@
+import io
 import os
 from pathlib import Path
 from tempfile import TemporaryFile
 
-from flask import Flask, Response, send_file
+from flask import Flask, Response, send_file, request
 from flask_restful import Api
+from werkzeug.exceptions import BadRequestKeyError
 
 from . import db
 from . import importer
@@ -45,7 +47,30 @@ def create_app(test_config=None):
 
     @app.route('/import')
     def import_csv():
-        return "import"
+        return """
+            <html>
+                <body>
+                    <h1>Import csv</h1>
+
+                    <form action="/import_csv" method="post" enctype="multipart/form-data">
+                        <input type="file" name="csv_file" />
+                        <input type="submit" />
+                    </form>
+                </body>
+            </html>
+"""
+
+    @app.route('/import_csv', methods=['POST'])
+    def _import_csv():
+        try:
+            f = request.files['xcsv_file']
+            stream = io.StringIO(f.stream.read().decode("UTF8"), newline=None)
+        except (BadRequestKeyError, UnicodeDecodeError):
+            return "no/bad file", 400
+
+        importer.csv_data.import_csv(stream)
+
+        return "done"
 
     @app.route('/export')
     def export_csv():
