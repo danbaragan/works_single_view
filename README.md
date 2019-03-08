@@ -43,7 +43,14 @@ Also, play around with docker, flask, peewee, postgres, nginx
  (very probable)
 
 ### API
- The API is WIP. Due to the method chosen (information updated to the best version) the API should be straight forward.
+
+- GET /works
+- GET /works/<iswc>
+- GET /export
+- GET /import
+
+The API under works is rest.
+The import/export api is temporary and very schematic
 
 ### different environments
  The structure is such that prod/staging/dev are already separated by env variables
