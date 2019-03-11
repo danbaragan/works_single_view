@@ -46,32 +46,19 @@ def create_app(test_config=None):
     def hello(name='world'):
         return render_template('hello.html', name=name)
 
-    @app.route('/import')
+    @app.route('/import', methods=['GET', 'POST'])
     def import_csv():
-        return """
-            <html>
-                <body>
-                    <h1>Import csv</h1>
+        if request.method == 'POST':
+            try:
+                f = request.files['csv_file']
+                stream = io.StringIO(f.stream.read().decode("UTF8"), newline=None)
+            except (BadRequestKeyError, UnicodeDecodeError):
+                return "no/bad file", 400
 
-                    <form action="/import_csv" method="post" enctype="multipart/form-data">
-                        <input type="file" name="csv_file" />
-                        <input type="submit" />
-                    </form>
-                </body>
-            </html>
-"""
-
-    @app.route('/import_csv', methods=['POST'])
-    def _import_csv():
-        try:
-            f = request.files['csv_file']
-            stream = io.StringIO(f.stream.read().decode("UTF8"), newline=None)
-        except (BadRequestKeyError, UnicodeDecodeError):
-            return "no/bad file", 400
-
-        importer.csv_data.import_csv(stream)
-
-        return "done"
+            importer.csv_data.import_csv(stream)
+            return f'{f.filename} imported'
+        if request.method == 'GET':
+            return render_template('import.html')
 
     @app.route('/export')
     def export_csv():
