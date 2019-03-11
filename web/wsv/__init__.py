@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from tempfile import TemporaryFile
 
-from flask import Flask, Response, send_file, request
+from flask import Flask, Response, send_file, request, render_template
 from flask_restful import Api
 from werkzeug.exceptions import BadRequestKeyError
 
@@ -41,9 +41,10 @@ def create_app(test_config=None):
     db.init_app(app)
     importer.init_app(app)
 
-    @app.route('/hello')
-    def hello():
-        return "Hello world!"
+    @app.route('/hello/')
+    @app.route('/hello/<name>')
+    def hello(name='world'):
+        return render_template('hello.html', name=name)
 
     @app.route('/import')
     def import_csv():
