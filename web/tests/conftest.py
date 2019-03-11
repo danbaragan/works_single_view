@@ -5,24 +5,20 @@ import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 from wsv import create_app
+from wsv import db
 
 
-@pytest.fixture(scope='session')
-def app():
-    # FIXME when the app user will differ from postgres user this may not work anymore
-    user = 'testing'
-    password = 'testing'
-    db = 'testing'
+def create_test_db(db_name, user, password):
     con = psycopg2.connect(
         dbname='postgres',
         host=os.getenv('DATABASE_HOST'),
         user=os.getenv('POSTGRES_USER'),
         password=os.getenv('POSTGRES_PASSWORD'),
     )
-    con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    con.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
     cur = con.cursor()
     try:
-        cur.execute(f"DROP DATABASE {db} ;")
+        cur.execute(f"DROP DATABASE {db_name} ;")
     except psycopg2.ProgrammingError:
         pass
     try:
@@ -30,15 +26,38 @@ def app():
     except psycopg2.ProgrammingError:
         pass
 
-    cur.execute(f"CREATE DATABASE {db} ;")
+    cur.execute(f"CREATE DATABASE {db_name} ;")
     cur.execute(f"CREATE USER {user} WITH ENCRYPTED PASSWORD '{password}';")
-    cur.execute(f"GRANT ALL PRIVILEGES ON DATABASE {db} TO {user};")
+    cur.execute(f"GRANT ALL PRIVILEGES ON DATABASE {db_name} TO {user};")
     con.close()
+
+
+def drop_test_db(db_name, user):
+    con = psycopg2.connect(
+        dbname='postgres',
+        host=os.getenv('DATABASE_HOST'),
+        user=os.getenv('POSTGRES_USER'),
+        password=os.getenv('POSTGRES_PASSWORD'),
+    )
+    con.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
+    cur = con.cursor()
+    cur.execute(f"DROP DATABASE {db_name} ;")
+    cur.execute(f"DROP USER {user} ;")
+    con.close()
+
+
+@pytest.fixture(scope='session')
+def app():
+    # FIXME when the app user will differ from postgres user this may not work anymore
+    user = 'testing'
+    password = 'testing'
+    db_name = 'testing'
+    create_test_db(db_name, user, password)
 
     app = create_app({
         'TESTING': True,
         'DATABASE': {
-            'name': db,
+            'name': db_name,
             'engine': 'playhouse.pool.PostgresqlDatabase',
             'user': user,
             'password': password,
@@ -46,27 +65,14 @@ def app():
         },
     })
     with app.app_context():
-        from wsv.db import create_tables
-        create_tables()
+        db.create_tables()
 
     # TODO monkeypatch wsv.db.datetime.utcnow() so we'll be able to control chronology in tests
-
     yield app
 
     with app.app_context():
-        from wsv.db import db_wrapper
-        db_wrapper.database.close()
-    con = psycopg2.connect(
-        dbname='postgres',
-        host=os.getenv('DATABASE_HOST'),
-        user=os.getenv('POSTGRES_USER'),
-        password=os.getenv('POSTGRES_PASSWORD'),
-    )
-    con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-    cur = con.cursor()
-    cur.execute(f"DROP DATABASE {db} ;")
-    cur.execute(f"DROP USER {user} ;")
-    con.close()
+        db.db_wrapper.database.close()
+    drop_test_db(db_name, user)
 
 
 @pytest.fixture
