@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from tempfile import TemporaryFile
 
-from flask import Flask, Response, send_file, request, render_template
+from flask import Flask, Response, send_file, request, render_template, flash, url_for, redirect
 from flask_restful import Api
 from werkzeug.exceptions import BadRequestKeyError
 
@@ -56,9 +56,9 @@ def create_app(test_config=None):
                 return "no/bad file", 400
 
             importer.csv_data.import_csv(stream)
-            return f'{f.filename} imported'
-        if request.method == 'GET':
-            return render_template('import.html')
+            flash(f'{f.filename} imported')
+            redirect(url_for('import_csv'))
+        return render_template('import.html')
 
     @app.route('/export')
     def export_csv():

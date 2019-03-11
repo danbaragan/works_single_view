@@ -7,6 +7,16 @@
 <body>
     <h1>Import csv</h1>
 
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class=flashes>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
     <form action="{{ url_for('import_csv') }}" method="post" enctype="multipart/form-data">
         <input type="file" name="csv_file" />
         <input type="submit" />
