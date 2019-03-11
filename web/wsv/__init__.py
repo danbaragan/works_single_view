@@ -64,7 +64,7 @@ def create_app(test_config=None):
     @app.route('/import_csv', methods=['POST'])
     def _import_csv():
         try:
-            f = request.files['xcsv_file']
+            f = request.files['csv_file']
             stream = io.StringIO(f.stream.read().decode("UTF8"), newline=None)
         except (BadRequestKeyError, UnicodeDecodeError):
             return "no/bad file", 400
