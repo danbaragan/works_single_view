@@ -15,7 +15,7 @@ if [ "$1" == "run" ]; then
         "${FLASK_APP}:create_app()"
 
 elif [ "$1" == "debug" ]; then
-    [ -f instance/${DATABASE} ] || init
+    wait_service postgres 5432
     exec flask run -h 0.0.0.0
 
 elif [ "$1" == "init" ]; then
