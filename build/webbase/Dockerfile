@@ -2,6 +2,8 @@ FROM python:3.7-slim
 
 RUN apt-get -y update &&\
     apt-get -y --no-install-recommends install \
+    curl \
+    gnupg2 \
     gcc \
     build-essential \
     vim \
@@ -16,14 +18,15 @@ RUN adduser --disabled-password --gecos '' --shell /bin/false web &&\
 
 RUN mkdir -p /home/web/instance
 RUN mkdir -p /home/web/bin
+RUN mkdir -p /home/web/app
 
 ENV HOME=/home/web \
     PATH=/home/web/bin:$PATH \
     USER=web
 
-ADD web/ $HOME/
+ADD web/ $HOME/app/
 
 ADD build/common.sh \
     $HOME/bin/
 
-WORKDIR $HOME
+WORKDIR $HOME/app

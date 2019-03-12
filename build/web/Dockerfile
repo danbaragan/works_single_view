@@ -5,7 +5,7 @@ ADD build/web/entrypoint.sh \
 
 ADD build/web/requirements.txt \
     build/web/requirements.dev.txt \
-    $HOME/
+    $HOME/app/
 
 # TODO make another image, based on this one, for development
 RUN pip install -r requirements.dev.txt

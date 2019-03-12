@@ -11,10 +11,10 @@ def create_app(test_config=None):
     from . import importer
     from . import view
 
-    app = Flask(__name__)
+    # this is Dockerfile dependent now...
+    app = Flask(__name__, instance_path='/home/web/instance')
 
     instance_path = Path(app.instance_path)
-    instance_path.mkdir(parents=True, exist_ok=True)
     db_config = {
         'name': os.getenv('DATABASE'),
         'engine': 'playhouse.pool.PostgresqlDatabase',

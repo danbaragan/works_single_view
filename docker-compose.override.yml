@@ -8,8 +8,7 @@ services:
     stdin_open: true
     command: debug
     volumes:
-      - ./web/wsv:/home/web/wsv
-      - ./web/tests:/home/web/tests
+      - ./web:/home/web/app
 
   web_server:
     command: debug
