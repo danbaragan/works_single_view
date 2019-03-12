@@ -19,6 +19,6 @@ server {
 
     location ^~ /static/  {
         include  /etc/nginx/mime.types;
-        root /home/web/instance/;
+        root /var/www/app/;
     }
 }

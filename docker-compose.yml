@@ -1,4 +1,4 @@
-version: "2"
+version: "3"
 
 services:
   web:
@@ -34,9 +34,9 @@ services:
       - deploy/web_server/env
     ports:
       - "80:80"
+    volumes:
+      - web_vol:/var/www/app/:ro
     depends_on:
-      - web
-    volumes_from:
       - web
 
 volumes:

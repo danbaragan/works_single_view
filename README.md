@@ -16,10 +16,11 @@ Also, play around with docker, flask, peewee, postgres, nginx
 
 - Have docker
 - `ln -s deploy.dev deploy`
+- `docker-compose -f docker-compose.buildBaseImages.yml build`
 - `docker-compose up -d`
 - `docker-compose exec web pytest -vv`
 - `docker cp deploy.dev/works_metadata.csv bmat_web:/home/web/instance/`
-- `docker-compose exec web flask init-db`
+- `docker-compose exec web init`
 - `docker-compose exec web flask import-csv -f instance/works_metadata.csv`
 
 ## Notes

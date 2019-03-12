@@ -1,0 +1,10 @@
+# Use this for build only:
+# docker-compose -f docker-compose.oneoffs.yml build
+version: "3"
+
+services:
+  webbase:
+    image: bmat_webbase:latest
+    build:
+      dockerfile: build/webbase/Dockerfile
+      context: .
