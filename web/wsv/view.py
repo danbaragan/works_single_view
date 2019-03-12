@@ -30,7 +30,7 @@ def import_csv():
 
         importer.csv_data.import_csv(stream)
         flash(f'{f.filename} imported')
-        redirect(url_for('import_csv'))
+        redirect(url_for('app.import_csv'))
     return render_template('import.html')
 
 
