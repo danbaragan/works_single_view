@@ -4,6 +4,7 @@
 
 init() {
     flask init-db
+    flask collect
 }
 
 if [ "$1" == "run" ]; then

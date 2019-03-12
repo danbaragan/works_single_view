@@ -16,4 +16,9 @@ server {
         proxy_redirect off;
         proxy_pass http://web:{{ env['FLASK_PORT'] }};
     }
+
+    location ^~ /static/  {
+        include  /etc/nginx/mime.types;
+        root /home/web/instance/;
+    }
 }

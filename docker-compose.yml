@@ -36,6 +36,8 @@ services:
       - "80:80"
     depends_on:
       - web
+    volumes_from:
+      - web
 
 volumes:
   db_vol:
